@@ -1,0 +1,110 @@
+---
+title: 'SEM #1'
+author: "Aleksander Molak"
+date: "February 3, 2020"
+output: html_document
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+path = "C:\\Users\\aleksander.molak\\Documents\\EDU\\DataCamp_-_StructEqModelling\\Struct_Eq_Modelling"
+data_file = "ESP_DATA6_HOMEWORK1.SAV"
+color  = '#195e8c'
+color2 = '#d4ff00'
+color3 = '#b80031'
+color4 = '#ffbf00'
+```
+
+```{r}
+library(lavaan)
+library(psych)
+library(GGally)
+
+```
+
+# Structural Equation Modeling Exercises #1
+
+## Get data 
+
+```{r}
+data(HolzingerSwineford1939)
+
+holzinger <- HolzingerSwineford1939
+```
+
+
+## EDA
+
+```{r}
+summary(holzinger)
+```
+
+```{r}
+ggpairs(holzinger, columns = 7:15, mapping = aes(alpha = .1, colour = color))
+```
+
+
+## Model specification
+
+Your latent variables' names are arbitrary. Your manifest variables should be column names from your dataset. 
+
+```{r}
+model_def_visual_IQ <- 'textspeed =~ x1 + x2 + x3 +x7 + x8 + x9'
+```
+
+
+Model quality is assessed based on degrees of freedom.
+
+Degrees of Freedom (df) are determined by the number of manifest variables and estimated values, where:
+
+
+* df = Possible Values - Estimated Values
+
+* Possible Values = Manifest Variables * (Manifest Variables + 1) / 2
+
+
+**Remember**: 
+
+* Include at least three manifest variables
+
+* Create models with df > 0
+
+
+## Fit the model
+
+```{r}
+model_fit_visual_IQ <- cfa(model = model_def_visual_IQ,
+                           data  = holzinger)
+```
+
+
+## Interpret the model
+
+```{r}
+summary(model_fit_visual_IQ)
+```
+
+
+It might be hard to interpret estimates as they are expressed in the scale of the data. 
+
+We can standardize the solution to use z-scores:
+
+
+```{r}
+summary(model_fit_visual_IQ, standardized = TRUE)
+```
+
+
+This produces a new column `Std.all`. Values close to 1 indicate a strong relationship to the latent variable. 
+
+### Explore model fit
+
+```{r}
+summary(model_fit_visual_IQ, fit.measures = TRUE)
+```
+
+It seems that the fit is not very good. $TLI$ and $CFI$ are much below $.9 - .95$ range, which is a customary threshold for good model fit. $RMSEA > .1$, which is another indicator of very average fit. 
+
+
