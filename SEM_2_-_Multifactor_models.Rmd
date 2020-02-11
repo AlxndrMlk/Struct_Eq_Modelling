@@ -35,16 +35,98 @@ holzinger <- HolzingerSwineford1939
 ```
 
 
-## Define a two-factor model
+## Define & fit a two-factor model
 
 ```{r}
+# Define
 twofactor_model_def <- 'visual =~ x1 + x2 + x3
-    speed =~ x7 + x8 + x9'
+                        speed  =~ x7 + x8 + x9'
 ```
 
 
 ```{r}
+# Fit
+twofactor_model_fit <- cfa(model = twofactor_model_def,
+                           data  = HolzingerSwineford1939)
 
 ```
+
+```{r}
+summary(twofactor_model_fit, standardized = TRUE, fit.measures = TRUE)
+```
+
+
+Note, that in the two-factor model the output contains `~~`. It signifies covariance.
+
+
+It's a great moment to introduce a bit more of syntax for model specificatation:
+
+
+  * `=~` creates latent variables
+  * `~~` creates covariance between variables
+  * `~` creates direct prediction between variables
+
+Remember, `y ~ x` to specify direction
+
+
+## Improving model fit - modification indices
+
+
+* Compare data variance with model variance
+
+```{r}
+var(holzinger$x1)
+```
+
+We can see that `x1` variance is higher than model-estimated variance for this predictor. This may indicate model variance issue.
+
+
+* Modification indices
+
+Let's compute modification indices. They'll potentially allow us to find potential parameters (paths) to add to the model specification to improve model fit. 
+
+
+```{r}
+modificationindices(twofactor_model_fit, sort = TRUE)
+```
+
+
+`x7 ~~ x8` has the highest `mi`. Let's add it to the model.
+
+```{r}
+improved_model_def <- 'visual =~ x1 + x2 + x3
+                       speed  =~ x7 + x8 + x9
+                       x7 ~~ x8'
+```
+
+```{r}
+# Fit
+improved_model_fit <- cfa(model = improved_model_def,
+                          data  = HolzingerSwineford1939)
+```
+
+```{r}
+summary(improved_model_fit, standardized = TRUE, fit.measures = TRUE)
+```
+
+`TLI` and `CFI` are now much higher and `RMSEA` is around twice lower. Good job! 
+
+But... let's compare model fits statistically:
+
+```{r}
+anova(twofactor_model_fit, improved_model_fit)
+```
+
+
+```{r}
+fitmeasures(twofactor_model_fit, c("aic", "ecvi"))
+```
+
+```{r}
+fitmeasures(improved_model_fit, c("aic", "ecvi"))
+```
+
+
+It looks like the improved model is better in terms of $\chi^2$, `AIC` and `ecvi`.
 
 
